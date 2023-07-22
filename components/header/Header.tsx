@@ -1,6 +1,7 @@
 import React from 'react';
 import { useRouter } from 'next/router';
 import { Bars3Icon, Cog6ToothIcon } from '@heroicons/react/24/outline';
+import { UserButton } from '@clerk/nextjs';
 
 interface HeaderProps {
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -20,8 +21,9 @@ const Header: React.FC<HeaderProps> = ({ setSidebarOpen }) => {
       </button>
 
       <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6 items-center">
+        <UserButton afterSignOutUrl="/sign-in" />
         <span className="flex-1 text-center items-center flex-shrink-0 rounded-md  px-2 py-1 text-xs sm:text-sm md:text-md md:text-lg font-medium text-blue-400">
-          DOC CHATBOT
+          TIM'S CHATBOT
         </span>
       </div>
 

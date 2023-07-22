@@ -273,7 +273,7 @@ export default function Settings() {
                 <button
                   type="button"
                   className="rounded-md items-center align-center justify-between flex bg-white px-4 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-200"
-                  onClick={() => router.push('/')}
+                  onClick={() => router.push('/chat')}
                 >
                   Start chatting
                   <ArrowRightIcon

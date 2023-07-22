@@ -1,5 +1,6 @@
 import '@/styles/base.css';
 import type { AppProps as NextAppProps } from 'next/app';
+import { ClerkProvider } from '@clerk/nextjs';
 import { Inter } from 'next/font/google';
 
 type AppProps = NextAppProps;
@@ -12,7 +13,9 @@ const inter = Inter({
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <main className={inter.variable}>
-      <Component {...pageProps} />
+      <ClerkProvider {...pageProps}>
+        <Component {...pageProps} />
+      </ClerkProvider>
     </main>
   );
 }
