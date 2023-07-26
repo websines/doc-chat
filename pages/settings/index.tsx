@@ -13,6 +13,8 @@ import {
 import Pattern from './components/Pattern';
 import KeyForm from '@/components/keyform/KeyForm';
 
+//Added multiple pdf upload function
+
 export default function Settings() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const {
