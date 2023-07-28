@@ -2,6 +2,10 @@ import { initPinecone } from '@/utils/pinecone-client';
 
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import {
+  pineconeIndexName as targetIndex,
+} from '@/utils/keys';
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
@@ -10,17 +14,11 @@ export default async function handler(
     namespace: string;
   };
 
-  const pineconeApiKey = req.headers['x-api-key'];
-  const targetIndex = req.headers['x-index-name'] as string;
-  const pineconeEnvironment = req.headers['x-environment'];
-
   const pinecone = await initPinecone(
-    pineconeApiKey as string,
-    pineconeEnvironment as string,
   );
 
   try {
-    const index = pinecone.Index(targetIndex);
+    const index = pinecone.Index(targetIndex!);
     await index._delete({
       deleteRequest: {
         namespace,

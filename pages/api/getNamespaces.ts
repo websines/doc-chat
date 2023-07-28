@@ -1,22 +1,20 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { initPinecone } from '@/utils/pinecone-client';
+import {
+  pineconeIndexName as targetIndex,
+} from '@/utils/keys';
 
 type NamespaceSummary = {
   vectorCount: number;
 };
 
 const getNamespaces = async (req: NextApiRequest, res: NextApiResponse) => {
-  const pineconeApiKey = req.headers['x-api-key'];
-  const targetIndex = req.headers['x-index-name'] as string;
-  const pineconeEnvironment = req.headers['x-environment'];
 
   const pinecone = await initPinecone(
-    pineconeApiKey as string,
-    pineconeEnvironment as string,
   );
 
   try {
-    const index = pinecone.Index(targetIndex);
+    const index = pinecone.Index(targetIndex!);
 
     const describeIndexStatsQuery = {
       describeIndexStatsRequest: {

@@ -9,20 +9,19 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import { initPinecone } from '@/utils/pinecone-client';
 
+import {
+  openAIapiKey,
+  pineconeIndexName as targetIndex,
+} from '@/utils/keys';
+
 const filePath = process.env.NODE_ENV === 'production' ? '/tmp' : 'tmp';
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  const openAIapiKey = req.headers['x-openai-key'];
-  const pineconeApiKey = req.headers['x-pinecone-key'];
-  const targetIndex = req.headers['x-index-name'] as string;
-  const pineconeEnvironment = req.headers['x-environment'];
 
   const pinecone = await initPinecone(
-    pineconeApiKey as string,
-    pineconeEnvironment as string,
   );
 
   const { namespaceName, chunkSize, overlapSize } = req.query;
@@ -51,7 +50,7 @@ export default async function handler(
     });
 
     // Get the Pinecone index with the given name
-    const index = pinecone.Index(targetIndex);
+    const index = pinecone.Index(targetIndex!);
 
     // Store the document chunks in Pinecone with their embeddings
     await PineconeStore.fromDocuments(docs, embeddings, {

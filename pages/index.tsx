@@ -9,7 +9,13 @@ import { Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Document } from 'langchain/document';
 
-import { useChats, useNamespaces, useKeys } from '@/hooks';
+import { useChats, useNamespaces } from '@/hooks';
+import {
+  openAIapiKey,
+  pineconeApiKey,
+  pineconeEnvironment,
+  pineconeIndexName,
+} from '@/utils/keys';
 
 import { Dialog } from '@headlessui/react';
 import { ConversationMessage, Message } from '@/types';
@@ -27,18 +33,11 @@ export default function Home() {
     useState<boolean>(false);
 
   const {
-    openAIapiKey,
-    pineconeApiKey,
-    pineconeEnvironment,
-    pineconeIndexName,
-  } = useKeys();
-
-  const {
     namespaces,
     selectedNamespace,
     setSelectedNamespace,
     isLoadingNamespaces,
-  } = useNamespaces(pineconeApiKey, pineconeIndexName, pineconeEnvironment);
+  } = useNamespaces(pineconeApiKey!, pineconeIndexName!, pineconeEnvironment!);
 
   const {
     chatList,

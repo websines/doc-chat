@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { useDropzone } from 'react-dropzone';
-import { useKeys } from '@/hooks';
 import { OverlapSizeModal, ChunkSizeModal } from '@/components/other';
 import {
   ArrowRightIcon,
@@ -13,20 +12,17 @@ import {
 import Pattern from './components/Pattern';
 import KeyForm from '@/components/keyform/KeyForm';
 
+import {
+  openAIapiKey,
+  pineconeApiKey,
+  pineconeEnvironment,
+  pineconeIndexName,
+} from '@/utils/keys';
+
 //Added multiple pdf upload function
 
 export default function Settings() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const {
-    openAIapiKey,
-    pineconeApiKey,
-    pineconeEnvironment,
-    pineconeIndexName,
-    handleKeyChange,
-    handleSubmitKeys,
-  } = useKeys();
-
-  const [submitClicked, setSubmitClicked] = useState(false);
   const [namespaceName, setNamespaceName] = useState<string>('');
   const [deleteMessage, setDeleteMessage] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -51,9 +47,9 @@ export default function Settings() {
     try {
       const response = await fetch(`/api/getNamespaces`, {
         headers: {
-          'X-Api-Key': pineconeApiKey,
-          'X-Index-Name': pineconeIndexName,
-          'X-Environment': pineconeEnvironment,
+          'X-Api-Key': pineconeApiKey!,
+          'X-Index-Name': pineconeIndexName!,
+          'X-Environment': pineconeEnvironment!,
         },
       });
       const data = await response.json();
@@ -76,14 +72,8 @@ export default function Settings() {
   }, [pineconeApiKey, pineconeEnvironment, pineconeIndexName]);
 
   useEffect(() => {
-    if (submitClicked) {
-      fetchNamespaces();
-    }
-  }, [fetchNamespaces, submitClicked]);
-
-  useEffect(() => {
-    setSubmitClicked(false);
-  }, [openAIapiKey, pineconeApiKey, pineconeEnvironment, pineconeIndexName]);
+    fetchNamespaces();
+  }, []);
 
   const handleDelete = async (namespace: string) => {
     try {
@@ -92,9 +82,9 @@ export default function Settings() {
         {
           method: 'DELETE',
           headers: {
-            'X-Api-Key': pineconeApiKey,
-            'X-Index-Name': pineconeIndexName,
-            'X-Environment': pineconeEnvironment,
+            'X-Api-Key': pineconeApiKey!,
+            'X-Index-Name': pineconeIndexName!,
+            'X-Environment': pineconeEnvironment!,
           },
         },
       );
@@ -150,7 +140,7 @@ export default function Settings() {
     } catch (error: any) {
       setError({
         message: error.message,
-        customString: 'An error occured trying to upload files',
+        customString: 'An error occurred trying to upload files',
       });
     }
   };
@@ -164,10 +154,10 @@ export default function Settings() {
         {
           method: 'POST',
           headers: {
-            'X-OpenAI-Key': openAIapiKey,
-            'X-Pinecone-Key': pineconeApiKey,
-            'X-Index-Name': pineconeIndexName,
-            'X-Environment': pineconeEnvironment,
+            'X-OpenAI-Key': openAIapiKey!,
+            'X-Pinecone-Key': pineconeApiKey!,
+            'X-Index-Name': pineconeIndexName!,
+            'X-Environment': pineconeEnvironment!,
           },
         },
       );
@@ -209,59 +199,7 @@ export default function Settings() {
             )}
 
             <div className="max-w-xl mx-auto">
-              <div className="gap-4 grid grid-cols1 sm:grid-cols-2 mb-6">
-                <KeyForm
-                  keyName="OpenAI API Key"
-                  keyValue={openAIapiKey}
-                  setKeyValue={(key: string) =>
-                    handleKeyChange('openAIapiKey', key)
-                  }
-                />
-                <KeyForm
-                  keyName="Pinecone API Key"
-                  keyValue={pineconeApiKey}
-                  setKeyValue={(key: string) =>
-                    handleKeyChange('pineconeApiKey', key)
-                  }
-                />
-                <KeyForm
-                  keyName="Pinecone environment"
-                  keyValue={pineconeEnvironment}
-                  setKeyValue={(key: string) =>
-                    handleKeyChange('pineconeEnvironment', key)
-                  }
-                />
-                <KeyForm
-                  keyName="Pinecone index name"
-                  keyValue={pineconeIndexName}
-                  setKeyValue={(key: string) =>
-                    handleKeyChange('pineconeIndexName', key)
-                  }
-                />
-              </div>
-              {openAIapiKey &&
-                pineconeApiKey &&
-                pineconeEnvironment &&
-                pineconeIndexName && (
-                  <button
-                    type="button"
-                    className="rounded-md text-white mb-6 mx-auto items-center align-center justify-between flex px-4 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold focus-visible:outline-indigo-500 shadow-sm ring-1 ring-inset bg-indigo-500 hover:bg-indigo-400"
-                    onClick={() => {
-                      handleSubmitKeys();
-                      setSubmitClicked(true);
-                    }}
-                  >
-                    {submitClicked ? (
-                      <>
-                        Your keys have been submitted
-                        <CheckIcon className="ml-2 h-4 w-4" />
-                      </>
-                    ) : (
-                      'Submit'
-                    )}
-                  </button>
-                )}
-              <div className="flex pt-4 border-t border-white justify-between items-center space-x-2 align-center mb-2">
+              <div className="flex pt-4 justify-between items-center space-x-2 align-center mb-2">
                 {namespaces.length > 0 ? (
                   <h2 className="mb-4 text-xl text-center sm:text-3xl sm:text-left font-bold text-white">
                     Your namespaces

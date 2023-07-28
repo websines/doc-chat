@@ -3,6 +3,12 @@ import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
 import { PineconeStore } from 'langchain/vectorstores/pinecone';
 import { makeChain } from '@/utils/makechain';
 import { initPinecone } from '@/utils/pinecone-client';
+import {
+  openAIapiKey,
+  pineconeApiKey,
+  pineconeEnvironment,
+  pineconeIndexName as targetIndex,
+} from '@/utils/keys';
 
 export default async function handler(
   req: NextApiRequest,
@@ -16,14 +22,7 @@ export default async function handler(
     modelTemperature,
   } = req.body;
 
-  const openAIapiKey = req.headers['x-openai-key'];
-  const pineconeApiKey = req.headers['x-pinecone-key'];
-  const pineconeEnvironment = req.headers['x-pinecone-environment'];
-  const targetIndex = req.headers['x-pinecone-index-name'] as string;
-
   const pinecone = await initPinecone(
-    pineconeApiKey as string,
-    pineconeEnvironment as string,
   );
 
   if (!openAIapiKey) {
