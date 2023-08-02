@@ -12,7 +12,10 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint --ignore-path .gitignore \"**/*.+(ts|js|tsx)\"",
     "format": "prettier --ignore-path .gitignore \"**/*.+(ts|js|tsx)\" --write",
-    "vercel-build": "prisma generate && prisma migrate deploy && next build"
+    "prisma:generate": "npx prisma generate",
+    "prisma:migrate": "npx prisma migrate deploy",
+    "prisma:setup": "npm run prisma:generate && npm run prisma:migrate",
+    "vercel-build": "npm run prisma:setup && next build"
   },
   "dependencies": {
     "@clerk/nextjs": "^4.23.0",
