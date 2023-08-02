@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 
-export const createPrisma = ({url}) => {
+export const createPrisma = ({url}: any) => {
     const opts  ={
     datasources: {
       db: {
