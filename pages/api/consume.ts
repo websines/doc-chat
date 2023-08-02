@@ -11,7 +11,7 @@ import { initPinecone } from '@/utils/pinecone-client';
 import axios from 'axios'
 
 
-// THis is the updated version!!
+// This is the updated version!!
 import {
   openAIapiKey,
   supabaseKey,
