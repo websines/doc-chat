@@ -17,7 +17,11 @@ import {
   pineconeApiKey,
   pineconeEnvironment,
   pineconeIndexName,
+  supabaseBucket,
+  supabaseKey,
+  supabaseURL,
 } from '@/utils/keys';
+import { uploadToSubabase } from '@/utils/supabase';
 
 //Added multiple pdf upload function
 
@@ -117,37 +121,49 @@ export default function Settings() {
     multiple: true,
   });
 
-  const handleUpload = async () => {
-    if (!selectedFiles || selectedFiles.length === 0) return;
+  // const handleUpload = async () => {
+  //   try {
+  //     setLoading(true);
 
-    const formData = new FormData();
-    for (let i = 0; i < selectedFiles.length; i++) {
-      formData.append(`myfile${i}`, selectedFiles[i]);
-    }
+  //     const response = await fetch('/api/upload', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({
+  //         url: uploadData.path,
+  //         name: selectedFiles.map((file) => file.name),
+  //       }),
+  //     });
 
-    try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        setUploadMessage('Files uploaded successfully!');
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error);
-      }
-    } catch (error: any) {
-      setError({
-        message: error.message,
-        customString: 'An error occurred trying to upload files',
-      });
-    }
-  };
+  //     if (response.ok) {
+  //       setUploadMessage('Files uploaded successfully!');
+  //       setMessage(''); // Clear any existing ingestion message
+  //     } else {
+  //       const errorData = await response.json();
+  //       setError(errorData.error);
+  //     }
+  //   } catch (error: any) {
+  //     setError({
+  //       message: error.message,
+  //       customString: 'An error occurred trying to upload files',
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const handleIngest = async () => {
+    if (!selectedFiles || selectedFiles.length === 0) return;
     try {
       setLoading(true);
+
+      const formData = new FormData();
+      selectedFiles.forEach((file, index) => {
+        formData.append(`myfile${index}`, file);
+      });
+
+      const uploadData: any = await uploadToSubabase(selectedFiles[0]);
 
       const response = await fetch(
         `/api/consume?namespaceName=${namespaceName}&chunkSize=${chunkSize}&overlapSize=${overlapSize}`,
@@ -159,6 +175,11 @@ export default function Settings() {
             'X-Index-Name': pineconeIndexName!,
             'X-Environment': pineconeEnvironment!,
           },
+          body: JSON.stringify({
+            url: uploadData.path,
+            // name: selectedFiles.map((file) => file.name),
+            name: selectedFiles[0].name,
+          }),
         },
       );
 
@@ -175,6 +196,7 @@ export default function Settings() {
         setError(errorData.error);
       }
     } catch (error: any) {
+      console.log(error);
       setError({
         message: error.message,
         customString: 'Error ingesting files',
@@ -318,15 +340,15 @@ export default function Settings() {
               </label>
             </div>
             {/* upload area */}
-            <div className="mt-4 sm:mt-8 flex justify-end">
+            {/* <div className="mt-4 sm:mt-8 flex justify-end">
               <button
                 className="rounded-md bg-indigo-500 px-2.5 sm:px-3.5 py-1.5 sm:py-2.5 text-center text-sm sm:text-base font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
                 onClick={handleUpload}
               >
                 {uploadMessage ? uploadMessage : 'Upload files'}
               </button>
-            </div>
-            <div>
+            </div> */}
+            <div className="mt-8">
               <div className="flex items-center">
                 <label
                   htmlFor="chunkSize"
@@ -391,34 +413,38 @@ export default function Settings() {
               setOpen={setShowOverlapSizeModal}
             />
 
-            {uploadMessage && (
-              <div className="mt-4 sm:mt-8 grid grid-cols-1 gap-x-4 sm:gap-x-8 gap-y-4 sm:gap-y-6 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-semibold leading-6 text-white"
-                  >
-                    Namespace name
-                  </label>
+            {/* {uploadMessage && ( */}
+            <div className="mt-4 sm:mt-8 grid grid-cols-1 gap-x-4 sm:gap-x-8 gap-y-4 sm:gap-y-6 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-semibold leading-6 text-white"
+                >
+                  Namespace name
+                </label>
 
-                  <div className="mt-2.5">
-                    <input
-                      type="text"
-                      className="block w-full rounded-md border-0 bg-white/5 px-2 sm:px-3.5 py-1.5 sm:py-2 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 text-sm sm:text-base sm:leading-6 opacity-50"
-                      value={namespaceName}
-                      onChange={(e) => setNamespaceName(e.target.value)}
-                    />
-                  </div>
+                <div className="mt-2.5">
+                  <input
+                    type="text"
+                    className="block w-full rounded-md border-0 bg-white/5 px-2 sm:px-3.5 py-1.5 sm:py-2 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 text-sm sm:text-base sm:leading-6 opacity-50"
+                    value={namespaceName}
+                    onChange={(e) => setNamespaceName(e.target.value)}
+                  />
                 </div>
               </div>
-            )}
+            </div>
+            {/* )} */}
             {namespaceName && (
               <div className="mt-4 sm:mt-8 flex justify-end">
                 <button
                   className="rounded-md bg-indigo-500 px-2.5 sm:px-3.5 py-1.5 sm:py-2.5 text-center text-sm sm:text-base font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
                   onClick={handleIngest}
                 >
-                  {loading ? 'Ingesting...' : message ? message : 'Ingest'}
+                  {loading
+                    ? 'Ingesting...'
+                    : message
+                    ? message
+                    : 'Upload & Ingest'}
                 </button>
               </div>
             )}

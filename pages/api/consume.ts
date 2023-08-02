@@ -8,11 +8,22 @@ import { TextLoader } from 'langchain/document_loaders/fs/text';
 import { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import { initPinecone } from '@/utils/pinecone-client';
+import axios from 'axios'
 
 import {
   openAIapiKey,
+  supabaseKey,
+  supabaseBucket,
+  supabaseURL,
   pineconeIndexName as targetIndex,
+  supabaseDatabaseUrl,
 } from '@/utils/keys';
+import { createClient } from '@supabase/supabase-js';
+import { createPrisma } from '@/utils/prisma';
+
+
+const prisma = createPrisma({url: supabaseDatabaseUrl})
+const supabase = createClient(supabaseURL!, supabaseKey!)
 
 const filePath = process.env.NODE_ENV === 'production' ? '/tmp' : 'tmp';
 
@@ -21,12 +32,36 @@ export default async function handler(
   res: NextApiResponse,
 ) {
 
-  const pinecone = await initPinecone(
-  );
+  const pinecone = await initPinecone();
 
   const { namespaceName, chunkSize, overlapSize } = req.query;
 
+  const doc_data = req.body
+
+  console.log(doc_data)
+
   try {
+
+  const data = await prisma.documents.create({
+    data: {
+      url: doc_data?.url,
+      // @ts-ignore
+      name: doc_data?.name,
+      assigned_namespace: doc_data?.namespaceName
+    },
+  })
+
+ console.log(data)
+
+  const {
+    data: { publicUrl },
+  }: any = supabase.storage.from(supabaseBucket!).getPublicUrl(doc_data?.url)
+  const response = await axios.get(publicUrl, { responseType: "arraybuffer" })
+
+  // Write the PDF to a temporary file. This is necessary because the PDFLoader
+  fs.writeFileSync(`/tmp/${Date.now()}.pdf`, response.data)
+
+  
     // Load PDF files from the specified directory
     const directoryLoader = new DirectoryLoader(filePath, {
       '.pdf': (path) => new PDFLoader(path),

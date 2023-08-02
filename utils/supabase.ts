@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { supabaseURL, supabaseKey, supabaseBucket } from './keys'
 
 
 
@@ -7,17 +8,14 @@ export type Document = {
   name?: string
   url: string
 }
-export const supabaseClient = () => {
+
+
+export const uploadToSubabase = async (file: any) => {
   // @ts-ignore
-  const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY)
-  return supabase
-}
-export const uploadToSubabase = async (file: any, supabaseBucket: string) => {
-  // @ts-ignore
-  const supabase = supabaseClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+  const supabase = createClient(supabaseURL, supabaseKey);
     const { data, error } = await supabase
       .storage
-      .from(supabaseBucket)
+      .from(supabaseBucket as string)
       .upload(`${Date.now()}.pdf`, file, {
         cacheControl: '3600',
         upsert: false
