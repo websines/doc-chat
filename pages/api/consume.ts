@@ -10,6 +10,8 @@ import fs from 'fs';
 import { initPinecone } from '@/utils/pinecone-client';
 import axios from 'axios'
 
+
+// THis is the updated version!!
 import {
   openAIapiKey,
   supabaseKey,

@@ -118,7 +118,7 @@ export default function Settings() {
     onDrop: (acceptedFiles: File[]) => {
       setSelectedFiles(acceptedFiles);
     },
-    multiple: true,
+    multiple: false,
   });
 
   // const handleUpload = async () => {
