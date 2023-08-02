@@ -52,12 +52,13 @@ export default async function handler(
     }: any = await supabase.storage.from(supabaseBucket!).getPublicUrl(docDataParsed?.url);
     const response = await axios.get(publicUrl, { responseType: "arraybuffer" });
 
-    const arrayBuffer = response.data;
+    const pdfFilePath = process.env.NODE_ENV === 'production' ? `/tmp/${data.name}` : `tmp/${data.name}`;
+    fs.writeFileSync(pdfFilePath, response.data);
 
-    const directoryLoader = new DirectoryLoader('in-memory', {
-      '.pdf': (path) => new PDFLoader(arrayBuffer),
-      '.docx': (path) => new DocxLoader(arrayBuffer),
-      '.txt': (path) => new TextLoader(arrayBuffer),
+    const directoryLoader = new DirectoryLoader(process.env.NODE_ENV === 'production' ? '/tmp' : 'tmp', {
+      '.pdf': (path) => new PDFLoader(path),
+      '.docx': (path) => new DocxLoader(path),
+      '.txt': (path) => new TextLoader(path),
     });
 
     const rawDocs = await directoryLoader.load();
@@ -80,6 +81,8 @@ export default async function handler(
       namespace: namespaceName as string,
       textKey: 'text',
     });
+
+    fs.unlinkSync(pdfFilePath);
 
     res.status(200).json({ message: 'Data ingestion complete' });
   } catch (error) {
