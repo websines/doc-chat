@@ -21,49 +21,39 @@ import {
 import { createClient } from '@supabase/supabase-js';
 import { createPrisma } from '@/utils/prisma';
 
-
-const prisma = createPrisma({url: supabaseDatabaseUrl})
+const prisma = createPrisma({ url: supabaseDatabaseUrl })
 const supabase = createClient(supabaseURL!, supabaseKey!)
-
-const filePath = process.env.NODE_ENV === 'production' ? '/tmp' : 'tmp';
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-
   const pinecone = await initPinecone();
 
   const { namespaceName, chunkSize, overlapSize } = req.query;
 
-  const doc_data = req.body
-
-  console.log(doc_data)
+  const doc_data = req.body;
+  const docDataParsed = JSON.parse(doc_data);
 
   try {
+    const data = await prisma.documents.create({
+      data: {
+        url: docDataParsed?.url,
+        // @ts-ignore
+        name: docDataParsed?.name,
+        assigned_namespace: namespaceName as string,
+      },
+    });
 
-  const data = await prisma.documents.create({
-    data: {
-      url: doc_data?.url,
-      // @ts-ignore
-      name: doc_data?.name,
-      assigned_namespace: doc_data?.namespaceName
-    },
-  })
+    const {
+      data: { publicUrl },
+    }: any = await supabase.storage.from(supabaseBucket!).getPublicUrl(docDataParsed?.url);
+    const response = await axios.get(publicUrl, { responseType: "arraybuffer" });
 
- console.log(data)
+    const pdfFilePath = process.env.NODE_ENV === 'production' ? `/tmp/${data.name}` : `tmp/${data.name}`;
+    fs.writeFileSync(pdfFilePath, response.data);
 
-  const {
-    data: { publicUrl },
-  }: any = supabase.storage.from(supabaseBucket!).getPublicUrl(doc_data?.url)
-  const response = await axios.get(publicUrl, { responseType: "arraybuffer" })
-
-  // Write the PDF to a temporary file. This is necessary because the PDFLoader
-  fs.writeFileSync(`/tmp/${Date.now()}.pdf`, response.data)
-
-  
-    // Load PDF files from the specified directory
-    const directoryLoader = new DirectoryLoader(filePath, {
+    const directoryLoader = new DirectoryLoader(process.env.NODE_ENV === 'production' ? '/tmp' : 'tmp', {
       '.pdf': (path) => new PDFLoader(path),
       '.docx': (path) => new DocxLoader(path),
       '.txt': (path) => new TextLoader(path),
@@ -71,7 +61,6 @@ export default async function handler(
 
     const rawDocs = await directoryLoader.load();
 
-    // Split the PDF documents into smaller chunks
     const textSplitter = new RecursiveCharacterTextSplitter({
       chunkSize: Number(chunkSize),
       chunkOverlap: Number(overlapSize),
@@ -79,37 +68,23 @@ export default async function handler(
 
     const docs = await textSplitter.splitDocuments(rawDocs);
 
-    // OpenAI embeddings for the document chunks
     const embeddings = new OpenAIEmbeddings({
       openAIApiKey: openAIapiKey as string,
     });
 
-    // Get the Pinecone index with the given name
     const index = pinecone.Index(targetIndex!);
 
-    // Store the document chunks in Pinecone with their embeddings
     await PineconeStore.fromDocuments(docs, embeddings, {
       pineconeIndex: index,
       namespace: namespaceName as string,
       textKey: 'text',
     });
 
-    // Delete the PDF, DOCX and TXT files
-    const filesToDelete = fs
-      .readdirSync(filePath)
-      .filter(
-        (file) =>
-          file.endsWith('.pdf') ||
-          file.endsWith('.docx') ||
-          file.endsWith('.txt'),
-      );
-    filesToDelete.forEach((file) => {
-      fs.unlinkSync(`${filePath}/${file}`);
-    });
+    fs.unlinkSync(pdfFilePath);
 
     res.status(200).json({ message: 'Data ingestion complete' });
   } catch (error) {
-    console.log('error', error);
+    console.error('error', error);
     res.status(500).json({ error: 'Failed to ingest your data' });
   }
 }
