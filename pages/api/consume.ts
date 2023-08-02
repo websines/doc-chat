@@ -46,7 +46,7 @@ export default async function handler(
         assigned_namespace: namespaceName as string,
       },
     });
-
+    
     const {
       data: { publicUrl },
     }: any = await supabase.storage.from(supabaseBucket!).getPublicUrl(docDataParsed?.url);
