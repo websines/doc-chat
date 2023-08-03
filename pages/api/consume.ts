@@ -46,14 +46,20 @@ export default async function handler(
         assigned_namespace: namespaceName as string,
       },
     });
+
+    console.log(data)
     
     const {
       data: { publicUrl },
     }: any = await supabase.storage.from(supabaseBucket!).getPublicUrl(docDataParsed?.url);
     const response = await axios.get(publicUrl, { responseType: "arraybuffer" });
 
+    console.log(publicUrl)
+
     const pdfFilePath = process.env.NODE_ENV === 'production' ? `/tmp/${data.name}` : `tmp/${data.name}`;
     fs.writeFileSync(pdfFilePath, response.data);
+
+    console.log(pdfFilePath)
 
     const directoryLoader = new DirectoryLoader(process.env.NODE_ENV === 'production' ? '/tmp' : 'tmp', {
       '.pdf': (path) => new PDFLoader(path),
@@ -62,6 +68,8 @@ export default async function handler(
     });
 
     const rawDocs = await directoryLoader.load();
+
+    console.log(rawDocs)
 
     const textSplitter = new RecursiveCharacterTextSplitter({
       chunkSize: Number(chunkSize),
