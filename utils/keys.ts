@@ -1,5 +1,5 @@
 
-export const openAIapiKey = process.env.OPENAI_API_KEY || "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";
+export const openAIapiKey = process.env.OPENAI_API_KEY || "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";
 export  const pineconeApiKey = process.env.PINECONE_API_KEY || "23e48064-f588-4271-9ce2-632ade12ebcd";
 export const pineconeEnvironment = process.env.PINECONE_ENVIRONMENT || "asia-southeast1-gcp-free"
 export  const pineconeIndexName = process.env.PINECONE_INDEX_NAME || "langchainchatbot"
